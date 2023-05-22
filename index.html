@@ -110,8 +110,7 @@
 
         // Draw score text
         context.font = "32px Arial";
-        context.fillStyle = "#000";
-        context.fillText("Score: " + score, 16, 32);
+        context.fillText("Score: " + score, width / 12, height / 12);
     }
 
 
@@ -145,7 +144,16 @@
         score = 0;
 
         document.addEventListener("keydown", startGame);
+        context.textBaseline = 'middle';
+        context.textAlign = 'center';
+        context.font = "32px Arial";
+        context.fillText("Press Space to restart", width / 2, height / 2);
     }
+
+    context.textBaseline = 'middle';
+    context.textAlign = 'center';
+    context.font = "32px Arial";
+    context.fillText("Press Space to start", width / 2, height / 2);
 </script>
 
 </html>
