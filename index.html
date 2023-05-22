@@ -131,11 +131,11 @@
         }
     }
 
-    function reset() {
+   function reset() {
         clearTimeout(spawnTimer)
-        obstacles.splice(0, obstacles.length)
-        gameStarted = false
-        gameOver = false
+        obstacles.splice(0)
+        gameStarted = false;
+        gameOver = false;
         player.x = width / 8;
         player.y = height / 2;
         player.vy = 0;
@@ -143,17 +143,18 @@
         // Reset score to zero
         score = 0;
 
-        document.addEventListener("keydown", startGame);
+        drawText("Press Space to restart");
+    }
+
+    // Draw text on the canvas with given content 
+    function drawText(content) {
         context.textBaseline = 'middle';
         context.textAlign = 'center';
         context.font = "32px Arial";
-        context.fillText("Press Space to restart", width / 2, height / 2);
+        context.fillText(content, width / 2, height / 2);
     }
 
-    context.textBaseline = 'middle';
-    context.textAlign = 'center';
-    context.font = "32px Arial";
-    context.fillText("Press Space to start", width / 2, height / 2);
+    drawText("Press Space to start");
 </script>
 
 </html>
