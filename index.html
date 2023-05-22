@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    const canvas = document.querySelector("canvas")
+    const context = canvas.getContext("2d")
+
+    const width = canvas.width = innerWidth * 0.95
+    const height = canvas.height = innerHeight * 0.95
+
+    const gravity = 0.5
+    const jumpForce = -10
+    let spawnTimer
+    let isJumping = false
+    let gameOver = false
+    let gameStarted = false;
+
+    const player = { width: 50, height: 50, x: width / 8, y: height / 2, vy: 0 }
+    const obstacles = []
+
+    function createObstacle() {
+        const gap = Math.floor(Math.random() * 150) + 100; // gap between 100 and 250
+        const obstacleWidth = Math.floor(Math.random() * 50) + 100; // width between 100 and 150
+        const interval = Math.floor(Math.random() * 1000) + 700; // interval between 700 and 1700
+        const speed = -10
+
+        const gapY = Math.floor(Math.random() * (height - gap));
+        const upperPipe = { x: width, y: 0, width: obstacleWidth, height: gapY, speed: speed };
+        const lowerPipe = { x: width, y: gapY + gap, width: obstacleWidth, height: height - gapY - gap, speed: speed };
+        obstacles.push(upperPipe, lowerPipe);
+
+        spawnTimer = setTimeout(createObstacle, interval);
+    }
+
+
+    function jump(event) {
+        if (event.type == "touchstart" || (event.type == "keydown" && event.key == " " && !isJumping)) {
+            player.vy = jumpForce
+            isJumping = true
+        };
+        if (event.type == "keyup" && event.key == " ") isJumping = false
+    }
+
+
+    canvas.addEventListener("touchstart", jump);
+    document.addEventListener("keydown", startGame);
+    document.addEventListener("keydown", jump);
+    document.addEventListener("keyup", jump);
+
+    function isCollide(a, b) {
+        const margin = 5;
+        return !(
+            ((a.y + a.height - margin) < (b.y + margin)) ||
+            (a.y + margin > (b.y + b.height - margin)) ||
+            ((a.x + a.width - margin) < b.x + margin) ||
+            (a.x + margin > (b.x + b.width - margin))
+        );
+    }
+
+    function update() {
+        player.y += player.vy
+        player.vy += gravity
+
+        if (player.y + player.height > height) {
+            player.y = height - player.height
+            gameOver = true
+        }
+        if (player.y < 0) player.y = 0
+
+        for (let i = 0; i < obstacles.length; i++) {
+            obstacles[i].x += obstacles[i].speed;
+        }
+
+        if (obstacles[0].x + obstacles[0].width < 0) {
+            obstacles.shift();
+            obstacles.shift();
+        }
+
+        for (let i = 0; i < obstacles.length; i++) {
+            if (isCollide(player, obstacles[i])) {
+                gameOver = true
+            }
+        }
+    }
+
+    function draw() {
+        context.clearRect(0, 0, width, height)
+        context.fillRect(player.x, player.y, player.width, player.height)
+        for (let i = 0; i < obstacles.length; i++) {
+            context.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+        }
+    }
+
+
+    function loop() {
+        if (!gameOver) {
+            draw()
+            update()
+            requestAnimationFrame(loop)
+        } else reset()
+    }
+
+    function startGame(event) {
+        if (!gameStarted && event.type == "keydown" && event.key == " ") {
+            gameStarted = true;
+            document.removeEventListener("keydown", startGame);
+            createObstacle();
+            requestAnimationFrame(loop);
+        }
+    }
+
+    function reset() {
+        clearTimeout(spawnTimer)
+        obstacles.splice(0, obstacles.length)
+        gameStarted = false
+        gameOver = false
+        player.x = width / 8;
+        player.y = height / 2;
+        player.vy = 0;
+        document.addEventListener("keydown", startGame);
+    }
+</script>
+
+</html>
