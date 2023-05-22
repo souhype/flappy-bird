@@ -132,6 +132,7 @@
     }
 
    function reset() {
+        document.addEventListener("keydown", startGame);
         clearTimeout(spawnTimer)
         obstacles.splice(0)
         gameStarted = false;
