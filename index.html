@@ -2,159 +2,199 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game</title>
 </head>
 
-<body style="margin: 0;">
-    <canvas></canvas>
+<body style="margin: 0">
+  <canvas></canvas>
 </body>
 <script>
-    const canvas = document.querySelector("canvas")
-    const context = canvas.getContext("2d")
+  const canvas = document.querySelector("canvas");
+  const context = canvas.getContext("2d");
 
-    const width = canvas.width = innerWidth
-    const height = canvas.height = innerHeight
+  const width = (canvas.width = innerWidth);
+  const height = (canvas.height = innerHeight);
 
-    const gravity = 0.5
-    const jumpForce = -10
-    const obstacleWidth = 75
-    const speed = -10
-    // const speed = screen.width < 700 ? -5 : -10
+  const gravity = 0.5;
+  const jumpForce = -10;
+  const obstacleWidth = 75;
+  const speed = -10;
+  // const speed = screen.width < 700 ? -5 : -10
 
-    let spawnTimer = 0
-    let score = 0
-    let isJumping = false
-    let gameOver = false
-    let gameStarted = false;
+  let spawnTimer = 0;
+  let score = 0;
+  let isJumping = false;
+  let gameOver = false;
+  let gameStarted = false;
 
-    const player = { width: 50, height: 50, x: width / 8, y: height / 2, vy: 0 }
-    const obstacles = []
+  const player = {
+    width: 50,
+    height: 50,
+    x: width / 8,
+    y: height / 2,
+    vy: 0,
+  };
+  const obstacles = [];
 
-    function createObstacle() {
-        const gap = Math.floor(Math.random() * 300) + 150; // gap between 150 and 450
-        const interval = Math.floor(Math.random() * 1000) + 500; // interval between 500 and 1500
+  function createObstacle() {
+    const gap = Math.floor(Math.random() * 300) + 150; // gap between 150 and 450
+    const interval = Math.floor(Math.random() * 1000) + 500; // interval between 500 and 1500
 
-        const gapY = Math.floor(Math.random() * (height - gap));
-        const upperPipe = { x: width, y: 0, width: obstacleWidth, height: gapY, speed, passed: false };
-        const lowerPipe = { x: width, y: gapY + gap, width: obstacleWidth, height: height - gapY - gap, speed, passed: false };
-        obstacles.push(upperPipe, lowerPipe);
+    const gapY = Math.floor(Math.random() * (height - gap));
+    const upperPipe = {
+      x: width,
+      y: 0,
+      width: obstacleWidth,
+      height: gapY,
+      speed,
+      passed: false,
+    };
+    const lowerPipe = {
+      x: width,
+      y: gapY + gap,
+      width: obstacleWidth,
+      height: height - gapY - gap,
+      speed,
+      passed: false,
+    };
+    obstacles.push(upperPipe, lowerPipe);
 
-        spawnTimer = setTimeout(createObstacle, interval);
+    spawnTimer = setTimeout(createObstacle, interval);
+  }
+
+  function jump(event) {
+    if (
+      event.type == "touchstart" ||
+      (event.type == "keydown" && event.key == " " && !isJumping)
+    ) {
+      player.vy = jumpForce;
+      isJumping = true;
+    }
+    if (event.type == "keyup" && event.key == " ") isJumping = false;
+  }
+
+  canvas.addEventListener("touchstart", startGame);
+  document.addEventListener("keydown", startGame);
+
+  canvas.addEventListener("touchstart", jump);
+  document.addEventListener("keydown", jump);
+  document.addEventListener("keyup", jump);
+
+  function isCollide(a, b) {
+    const margin = 5;
+    return !(
+      a.y + a.height - margin < b.y + margin ||
+      a.y + margin > b.y + b.height - margin ||
+      a.x + a.width - margin < b.x + margin ||
+      a.x + margin > b.x + b.width - margin
+    );
+  }
+
+  function update() {
+    player.y += player.vy;
+    player.vy += gravity;
+
+    if (player.y + player.height / 2 > height) {
+      player.y = height - player.height;
+      gameOver = true;
+    }
+    if (player.y < 0) player.y = 0;
+
+    for (const obstacle of obstacles) {
+      obstacle.x += obstacle.speed;
+
+      if (
+        !obstacle.passed &&
+        obstacle.y === 0 &&
+        obstacle.x + obstacle.width < player.x
+      ) {
+        score++;
+        obstacle.passed = true;
+      }
     }
 
-
-    function jump(event) {
-        if (event.type == "touchstart" || (event.type == "keydown" && event.key == " " && !isJumping)) {
-            player.vy = jumpForce
-            isJumping = true
-        };
-        if (event.type == "keyup" && event.key == " ") isJumping = false
+    if (obstacles.length > 0) {
+      if (obstacles[0].x + obstacles[0].width < 0) {
+        obstacles.splice(0, 2);
+      }
     }
 
+    for (const obstacle of obstacles) {
+      if (isCollide(player, obstacle)) {
+        gameOver = true;
+      }
+    }
+  }
 
-    canvas.addEventListener("touchstart", startGame);
+  function draw() {
+    context.clearRect(0, 0, width, height);
+    context.fillRect(player.x, player.y, player.width, player.height);
+    for (let i = 0; i < obstacles.length; i++) {
+      context.fillRect(
+        obstacles[i].x,
+        obstacles[i].y,
+        obstacles[i].width,
+        obstacles[i].height
+      );
+    }
+
+    drawText(`${score}`, width / 2, height / 8);
+  }
+
+  function loop() {
+    if (!gameOver) {
+      draw();
+      update();
+      requestAnimationFrame(loop);
+    } else reset();
+  }
+
+  function startGame(event) {
+    if (
+      !gameStarted &&
+      ((event.type == "keydown" && event.key == " ") ||
+        event.type == "touchstart")
+    ) {
+      createObstacle();
+      gameStarted = true;
+      document.removeEventListener("keydown", startGame);
+      canvas.removeEventListener("touchstart", startGame);
+      requestAnimationFrame(loop);
+    }
+  }
+
+  function reset() {
+    clearTimeout(spawnTimer);
+    obstacles.splice(0, obstacles.length);
+    gameStarted = false;
+    gameOver = false;
+    player.x = width / 8;
+    player.y = height / 2;
+    player.vy = 0;
+    score = 0;
     document.addEventListener("keydown", startGame);
+    canvas.addEventListener("touchstart", startGame);
+    drawText(
+      `${screen.width < 700 ? "Touch" : "Space"}`,
+      width / 2,
+      height / 2
+    );
+  }
 
-    canvas.addEventListener("touchstart", jump);
-    document.addEventListener("keydown", jump);
-    document.addEventListener("keyup", jump);
+  function drawText(content, posX, posY) {
+    context.textBaseline = "middle";
+    context.textAlign = "center";
+    context.font = "1.5rem sans-serif";
+    context.fillText(content, posX, posY);
+  }
 
-    function isCollide(a, b) {
-        const margin = 5;
-        return !(
-            ((a.y + a.height - margin) < (b.y + margin)) ||
-            (a.y + margin > (b.y + b.height - margin)) ||
-            ((a.x + a.width - margin) < b.x + margin) ||
-            (a.x + margin > (b.x + b.width - margin))
-        );
-    }
-
-    function update() {
-        player.y += player.vy
-        player.vy += gravity
-
-        if (player.y + player.height / 2 > height) {
-            player.y = height - player.height
-            gameOver = true
-        }
-        if (player.y < 0) player.y = 0
-
-        for (const obstacle of obstacles) {
-            obstacle.x += obstacle.speed;
-
-            if (!obstacle.passed && obstacle.y === 0 && obstacle.x + obstacle.width < player.x) {
-                score++;
-                obstacle.passed = true;
-            }
-        }
-
-        if (obstacles.length > 0) {
-            if (obstacles[0].x + obstacles[0].width < 0) {
-                obstacles.splice(0, 2);
-            }
-        }
-
-
-        for (const obstacle of obstacles) {
-            if (isCollide(player, obstacle)) {
-                gameOver = true
-            }
-        }
-    }
-
-    function draw() {
-        context.clearRect(0, 0, width, height)
-        context.fillRect(player.x, player.y, player.width, player.height)
-        for (let i = 0; i < obstacles.length; i++) {
-            context.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
-        }
-
-        drawText(`${score}`, width / 2, height / 8)
-    }
-
-
-    function loop() {
-        if (!gameOver) {
-            draw()
-            update()
-            requestAnimationFrame(loop)
-        } else reset()
-    }
-
-    function startGame(event) {
-        if (!gameStarted && (event.type == "keydown" && event.key == " " || event.type == "touchstart")) {
-            createObstacle();
-            gameStarted = true;
-            document.removeEventListener("keydown", startGame);
-            canvas.removeEventListener("touchstart", startGame);
-            requestAnimationFrame(loop);
-        }
-    }
-
-    function reset() {
-        clearTimeout(spawnTimer)
-        obstacles.splice(0, obstacles.length)
-        gameStarted = false
-        gameOver = false
-        player.x = width / 8;
-        player.y = height / 2;
-        player.vy = 0;
-        score = 0
-        document.addEventListener("keydown", startGame);
-        canvas.addEventListener("touchstart", startGame);
-        drawText(`${screen.width < 700 ? 'Touch' : 'Space'}`, width / 2, height / 2);
-    }
-
-    function drawText(content, posX, posY) {
-        context.textBaseline = 'middle';
-        context.textAlign = 'center';
-        context.font = "1.5rem sans-serif";
-        context.fillText(content, posX, posY);
-    }
-
-    drawText(`${screen.width < 700 ? 'Touch' : 'Space'}`, width / 2, height / 2);
+  drawText(
+    `${screen.width < 700 ? "Touch" : "Space"}`,
+    width / 2,
+    height / 2
+  );
 </script>
 
 </html>
