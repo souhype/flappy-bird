@@ -14,8 +14,8 @@
   const canvas = document.querySelector("canvas");
   const context = canvas.getContext("2d");
 
-  const width = (canvas.width = innerWidth);
-  const height = (canvas.height = innerHeight);
+  const width = (canvas.width = innerWidth * 0.97);
+  const height = (canvas.height = innerHeight * 0.97);
 
   const gravity = 0.5;
   const jumpForce = -10;
@@ -25,6 +25,7 @@
 
   let spawnTimer = 0;
   let score = 0;
+  let highScore = 0
   let isJumping = false;
   let gameOver = false;
   let gameStarted = false;
@@ -139,8 +140,8 @@
         obstacles[i].height
       );
     }
-
     drawText(`${score}`, width / 2, height / 8);
+
   }
 
   function loop() {
@@ -173,9 +174,13 @@
     player.x = width / 8;
     player.y = height / 2;
     player.vy = 0;
+    if (score > highScore) {
+      highScore = score;
+    }
     score = 0;
     document.addEventListener("keydown", startGame);
     canvas.addEventListener("touchstart", startGame);
+    drawText(`Highscore ${highScore}`, width / 2, height / 4);
     drawText(
       `${screen.width < 700 ? "Touch" : "Space"}`,
       width / 2,
