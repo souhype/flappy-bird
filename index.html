@@ -14,8 +14,8 @@
   const canvas = document.querySelector("canvas");
   const context = canvas.getContext("2d");
 
-  const width = (canvas.width = innerWidth * 0.97);
-  const height = (canvas.height = innerHeight * 0.97);
+  const width = (canvas.width = innerWidth);
+  const height = (canvas.height = innerHeight);
 
   const gravity = 0.5;
   const jumpForce = -10;
@@ -38,6 +38,42 @@
     vy: 0,
   };
   const obstacles = [];
+  let particles = [];
+
+  class Particle {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.vx = Math.random() * 2 - 2;
+      this.vy = Math.random() * 2 - 1;
+      this.alpha = 1;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= 0.05;
+    }
+
+    // draw() {
+    //   context.globalAlpha = this.alpha;
+    //   context.fillStyle = 'hsl(0, 100%, 50%)';
+    //   context.fillRect(this.x, this.y, 10, 10);
+    //   context.globalAlpha = 1;
+    // }
+    draw() {
+      const gradient = context.createLinearGradient(this.x, this.y, this.x + 10, this.y + 10);
+      gradient.addColorStop(0, 'hsl(0, 100%, 50%)');
+      gradient.addColorStop(0.5, 'hsl(25, 100%, 50%)');
+      gradient.addColorStop(1, 'hsl(50, 100%, 50%)')
+
+      context.globalAlpha = this.alpha;
+      context.fillStyle = gradient;
+      context.fillRect(this.x, this.y, 10, 10);
+      context.globalAlpha = 1;
+    }
+  }
+
 
   function createObstacle() {
     const gap = Math.floor(Math.random() * 300) + 150; // gap between 150 and 450
@@ -63,6 +99,12 @@
     obstacles.push(upperPipe, lowerPipe);
 
     spawnTimer = setTimeout(createObstacle, interval);
+  }
+
+  function spawnParticles() {
+    for (let i = 0; i < 2; i++) {
+      particles.push(new Particle(player.x, player.y + player.height));
+    }
   }
 
   function jump(event) {
@@ -97,6 +139,10 @@
     player.y += player.vy;
     player.vy += gravity;
 
+    if (!gameOver && gameStarted) {
+      spawnParticles();
+    }
+
     if (player.y + player.height / 2 > height) {
       player.y = height - player.height;
       gameOver = true;
@@ -127,10 +173,22 @@
         gameOver = true;
       }
     }
+    for (const particle of particles) {
+      particle.update();
+    }
+    particles = particles.filter(particle => particle.alpha > 0);
+
   }
 
   function draw() {
-    context.clearRect(0, 0, width, height);
+    context.fillStyle = 'hsl(0, 0%, 10%)';
+    context.globalAlpha = 0.25
+    context.fillRect(0, 0, width, height);
+    context.globalAlpha = 1
+    for (const particle of particles) {
+      particle.draw();
+    }
+    context.fillStyle = 'hsl(0, 0%, 80%)';
     context.fillRect(player.x, player.y, player.width, player.height);
     for (let i = 0; i < obstacles.length; i++) {
       context.fillRect(
@@ -140,8 +198,8 @@
         obstacles[i].height
       );
     }
+    context.fillStyle = 'hsl(0, 0%, 80%)';
     drawText(`${score}`, width / 2, height / 8);
-
   }
 
   function loop() {
@@ -191,7 +249,7 @@
   function drawText(content, posX, posY) {
     context.textBaseline = "middle";
     context.textAlign = "center";
-    context.font = "1.5rem sans-serif";
+    context.font = "small-caps 700 2rem sans-serif";
     context.fillText(content, posX, posY);
   }
 
