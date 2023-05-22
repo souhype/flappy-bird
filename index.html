@@ -7,38 +7,37 @@
     <title>Game</title>
 </head>
 
-<body>
+<body style="margin: 0;">
     <canvas></canvas>
 </body>
 <script>
     const canvas = document.querySelector("canvas")
     const context = canvas.getContext("2d")
 
-    const width = canvas.width = innerWidth * 0.97
-    const height = canvas.height = innerHeight * 0.97
+    const width = canvas.width = innerWidth
+    const height = canvas.height = innerHeight
 
     const gravity = 0.5
     const jumpForce = -10
-    let spawnTimer
+    const obstacleWidth = 100
+    const speed = screen.width < 700 ? -5 : -10
+
+    let spawnTimer = 0
+    let score = 0
     let isJumping = false
     let gameOver = false
     let gameStarted = false;
-
-    // Declare a global variable for score
-    let score = 0;
 
     const player = { width: 50, height: 50, x: width / 8, y: height / 2, vy: 0 }
     const obstacles = []
 
     function createObstacle() {
-        const gap = Math.floor(Math.random() * 100) + 150; // gap between 150 and 250
-        const interval = Math.floor(Math.random() * 1000) + 500; // interval between 500 and 1500
-        const obstacleWidth = 100
-        const speed = -10
+        const gap = Math.floor(Math.random() * 150) + 150; // gap between 150 and 300
+        const interval = Math.floor(Math.random() * 1000) + 700; // interval between 700 and 1700
 
         const gapY = Math.floor(Math.random() * (height - gap));
-        const upperPipe = { x: width, y: 0, width: obstacleWidth, height: gapY, speed: speed, passed: false };
-        const lowerPipe = { x: width, y: gapY + gap, width: obstacleWidth, height: height - gapY - gap, speed: speed, passed: false };
+        const upperPipe = { x: width, y: 0, width: obstacleWidth, height: gapY, speed, passed: false };
+        const lowerPipe = { x: width, y: gapY + gap, width: obstacleWidth, height: height - gapY - gap, speed, passed: false };
         obstacles.push(upperPipe, lowerPipe);
 
         spawnTimer = setTimeout(createObstacle, interval);
@@ -54,8 +53,10 @@
     }
 
 
-    canvas.addEventListener("touchstart", jump);
+    canvas.addEventListener("touchstart", startGame);
     document.addEventListener("keydown", startGame);
+
+    canvas.addEventListener("touchstart", jump);
     document.addEventListener("keydown", jump);
     document.addEventListener("keyup", jump);
 
@@ -79,24 +80,25 @@
         }
         if (player.y < 0) player.y = 0
 
-        for (let i = 0; i < obstacles.length; i++) {
-            obstacles[i].x += obstacles[i].speed;
-        }
+        for (const obstacle of obstacles) {
+            obstacle.x += obstacle.speed;
 
-        if (obstacles[0].x + obstacles[0].width < 0) {
-            obstacles.shift();
-            obstacles.shift();
-        }
-
-        for (let i = 0; i < obstacles.length; i++) {
-            if (isCollide(player, obstacles[i])) {
-                gameOver = true
-            }
-
-            // Check if obstacle is an upper pipe and has been passed and increment score
-            if (!obstacles[i].passed && obstacles[i].y == 0 && obstacles[i].x + obstacles[i].width < player.x) {
+            if (!obstacle.passed && obstacle.y === 0 && obstacle.x + obstacle.width < player.x) {
                 score++;
-                obstacles[i].passed = true;
+                obstacle.passed = true;
+            }
+        }
+
+        if (obstacles.length > 0) {
+            if (obstacles[0].x + obstacles[0].width < 0) {
+                obstacles.splice(0, 2);
+            }
+        }
+
+
+        for (const obstacle of obstacles) {
+            if (isCollide(player, obstacle)) {
+                gameOver = true
             }
         }
     }
@@ -108,9 +110,7 @@
             context.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
         }
 
-        // Draw score text
-        context.font = "32px Arial";
-        context.fillText("Score: " + score, width / 12, height / 12);
+        drawText(`Score: ${score}`, width / 8, height / 8)
     }
 
 
@@ -123,39 +123,37 @@
     }
 
     function startGame(event) {
-        if (!gameStarted && event.type == "keydown" && event.key == " ") {
+        if (!gameStarted && (event.type == "keydown" && event.key == " " || event.type == "touchstart")) {
+            createObstacle();
             gameStarted = true;
             document.removeEventListener("keydown", startGame);
-            createObstacle();
+            canvas.removeEventListener("touchstart", startGame);
             requestAnimationFrame(loop);
         }
     }
 
-   function reset() {
-        document.addEventListener("keydown", startGame);
+    function reset() {
         clearTimeout(spawnTimer)
-        obstacles.splice(0)
-        gameStarted = false;
-        gameOver = false;
+        obstacles.splice(0, obstacles.length)
+        gameStarted = false
+        gameOver = false
         player.x = width / 8;
         player.y = height / 2;
         player.vy = 0;
-
-        // Reset score to zero
-        score = 0;
-
-        drawText("Press Space to restart");
+        score = 0
+        document.addEventListener("keydown", startGame);
+        canvas.addEventListener("touchstart", startGame);
+        drawText("Press Space to restart", width / 2, height / 2);
     }
 
-    // Draw text on the canvas with given content 
-    function drawText(content) {
+    function drawText(content, posX, posY) {
         context.textBaseline = 'middle';
         context.textAlign = 'center';
-        context.font = "32px Arial";
-        context.fillText(content, width / 2, height / 2);
+        context.font = "1.5rem Arial";
+        context.fillText(content, posX, posY);
     }
 
-    drawText("Press Space to start");
+    drawText("Press Space to start", width / 2, height / 2);
 </script>
 
 </html>
