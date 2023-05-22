@@ -1,6 +1,6 @@
 # Flappy Bird Clone
 
-This is a simple clone of the popular Flappy Bird game, made with HTML5 canvas and vanilla JavaScript. The goal of the game is to control a bird and avoid hitting the pipes that appear on the screen. The game is over when the bird hits a pipe or the ground. The score is increased by one every time the bird passes a pair of pipes.
+This is a simple clone of the popular Flappy Bird game, made with HTML5 canvas and vanilla JavaScript. The goal of the game is to control a bird and avoid hitting the pipes that appear on the screen. The game is over when the bird hits a pipe or the ground. The score is increased by one every time the bird passes a pair of pipes. The game is responsive and supports both keyboard and touch input.
 
 ## How to play
 
