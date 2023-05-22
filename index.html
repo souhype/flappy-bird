@@ -19,8 +19,9 @@
 
     const gravity = 0.5
     const jumpForce = -10
-    const obstacleWidth = 100
-    const speed = screen.width < 700 ? -5 : -10
+    const obstacleWidth = 75
+    const speed = -10
+    // const speed = screen.width < 700 ? -5 : -10
 
     let spawnTimer = 0
     let score = 0
@@ -32,8 +33,8 @@
     const obstacles = []
 
     function createObstacle() {
-        const gap = Math.floor(Math.random() * 150) + 150; // gap between 150 and 300
-        const interval = Math.floor(Math.random() * 1000) + 700; // interval between 700 and 1700
+        const gap = Math.floor(Math.random() * 300) + 150; // gap between 150 and 450
+        const interval = Math.floor(Math.random() * 1000) + 500; // interval between 500 and 1500
 
         const gapY = Math.floor(Math.random() * (height - gap));
         const upperPipe = { x: width, y: 0, width: obstacleWidth, height: gapY, speed, passed: false };
@@ -110,7 +111,7 @@
             context.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
         }
 
-        drawText(`Score: ${score}`, width / 8, height / 8)
+        drawText(`${score}`, width / 2, height / 8)
     }
 
 
@@ -143,17 +144,17 @@
         score = 0
         document.addEventListener("keydown", startGame);
         canvas.addEventListener("touchstart", startGame);
-        drawText("Press Space to restart", width / 2, height / 2);
+        drawText(`${screen.width < 700 ? 'Touch' : 'Space'}`, width / 2, height / 2);
     }
 
     function drawText(content, posX, posY) {
         context.textBaseline = 'middle';
         context.textAlign = 'center';
-        context.font = "1.5rem Arial";
+        context.font = "1.5rem sans-serif";
         context.fillText(content, posX, posY);
     }
 
-    drawText("Press Space to start", width / 2, height / 2);
+    drawText(`${screen.width < 700 ? 'Touch' : 'Space'}`, width / 2, height / 2);
 </script>
 
 </html>
