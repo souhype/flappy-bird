@@ -7,7 +7,7 @@
   <title>Game</title>
 </head>
 
-<body style="margin: 0">
+<body style="margin: 0; overflow: hidden;">
   <canvas></canvas>
 </body>
 <script>
@@ -17,11 +17,12 @@
   const width = (canvas.width = innerWidth);
   const height = (canvas.height = innerHeight);
 
+  const dark = 'hsl(0, 0%, 10%)'
+  const light = 'hsl(0, 0%, 90%)'
   const gravity = 0.5;
   const jumpForce = -10;
   const obstacleWidth = 75;
-  const speed = -10;
-  // const speed = screen.width < 700 ? -5 : -10
+  const speed = screen.width < 700 ? -7 : -10
 
   let spawnTimer = 0;
   let score = 0;
@@ -36,6 +37,7 @@
     x: width / 8,
     y: height / 2,
     vy: 0,
+    color: 'hsl(200, 50%, 50%)'
   };
   const obstacles = [];
   let particles = [];
@@ -44,40 +46,40 @@
     constructor(x, y) {
       this.x = x;
       this.y = y;
-      this.vx = Math.random() * 2 - 2;
-      this.vy = Math.random() * 2 - 1;
+      this.vx = Math.random() * 5 - 5;
+      this.vy = Math.random() * 5 + 5;
       this.alpha = 1;
     }
 
     update() {
       this.x += this.vx;
       this.y += this.vy;
-      this.alpha -= 0.05;
+      this.alpha -= 0.01;
     }
 
+    draw() {
+      context.globalAlpha = this.alpha;
+      context.fillStyle = player.color;
+      context.fillRect(this.x, this.y, 5, 5);
+      context.globalAlpha = 1;
+    }
     // draw() {
+    //   const gradient = context.createLinearGradient(this.x, this.y, this.x + 10, this.y + 10);
+    //   gradient.addColorStop(0, 'hsl(0, 100%, 50%)');
+    //   gradient.addColorStop(0.5, 'hsl(25, 100%, 50%)');
+    //   gradient.addColorStop(1, 'hsl(50, 100%, 50%)')
+
     //   context.globalAlpha = this.alpha;
-    //   context.fillStyle = 'hsl(0, 100%, 50%)';
+    //   context.fillStyle = gradient;
     //   context.fillRect(this.x, this.y, 10, 10);
     //   context.globalAlpha = 1;
     // }
-    draw() {
-      const gradient = context.createLinearGradient(this.x, this.y, this.x + 10, this.y + 10);
-      gradient.addColorStop(0, 'hsl(0, 100%, 50%)');
-      gradient.addColorStop(0.5, 'hsl(25, 100%, 50%)');
-      gradient.addColorStop(1, 'hsl(50, 100%, 50%)')
-
-      context.globalAlpha = this.alpha;
-      context.fillStyle = gradient;
-      context.fillRect(this.x, this.y, 10, 10);
-      context.globalAlpha = 1;
-    }
   }
 
 
   function createObstacle() {
-    const gap = Math.floor(Math.random() * 300) + 150; // gap between 150 and 450
-    const interval = Math.floor(Math.random() * 1000) + 500; // interval between 500 and 1500
+    const gap = Math.floor(Math.random() * 150) + 150; // gap between 150 and 300
+    const interval = Math.floor(Math.random() * 700) + 700; // interval between 700 and 1400
 
     const gapY = Math.floor(Math.random() * (height - gap));
     const upperPipe = {
@@ -87,6 +89,7 @@
       height: gapY,
       speed,
       passed: false,
+      color: 'hsl(0, 50%, 50%)'
     };
     const lowerPipe = {
       x: width,
@@ -102,8 +105,8 @@
   }
 
   function spawnParticles() {
-    for (let i = 0; i < 2; i++) {
-      particles.push(new Particle(player.x, player.y + player.height));
+    for (let i = 0; i < 10; i++) {
+      particles.push(new Particle(player.x, player.y + player.height - 5));
     }
   }
 
@@ -126,7 +129,7 @@
   document.addEventListener("keyup", jump);
 
   function isCollide(a, b) {
-    const margin = 5;
+    const margin = 3;
     return !(
       a.y + a.height - margin < b.y + margin ||
       a.y + margin > b.y + b.height - margin ||
@@ -181,24 +184,24 @@
   }
 
   function draw() {
-    context.fillStyle = 'hsl(0, 0%, 10%)';
+    context.fillStyle = dark;
     context.globalAlpha = 0.25
     context.fillRect(0, 0, width, height);
     context.globalAlpha = 1
     for (const particle of particles) {
       particle.draw();
     }
-    context.fillStyle = 'hsl(0, 0%, 80%)';
     context.fillRect(player.x, player.y, player.width, player.height);
-    for (let i = 0; i < obstacles.length; i++) {
+    for (const obstacle of obstacles) {
+      context.fillStyle = obstacle.color;
       context.fillRect(
-        obstacles[i].x,
-        obstacles[i].y,
-        obstacles[i].width,
-        obstacles[i].height
+        obstacle.x,
+        obstacle.y,
+        obstacle.width,
+        obstacle.height
       );
     }
-    context.fillStyle = 'hsl(0, 0%, 80%)';
+    context.fillStyle = light;
     drawText(`${score}`, width / 2, height / 8);
   }
 
