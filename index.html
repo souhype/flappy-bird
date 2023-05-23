@@ -47,7 +47,7 @@
       this.x = x;
       this.y = y;
       this.vx = Math.random() * 5 - 5;
-      this.vy = Math.random() * 5 + 5;
+      this.vy = Math.random() * 10;
       this.alpha = 1;
     }
 
@@ -184,10 +184,8 @@
   }
 
   function draw() {
-    context.fillStyle = dark;
     context.globalAlpha = 0.25
-    context.fillRect(0, 0, width, height);
-    context.globalAlpha = 1
+    drawBackground()
     for (const particle of particles) {
       particle.draw();
     }
@@ -201,7 +199,6 @@
         obstacle.height
       );
     }
-    context.fillStyle = light;
     drawText(`${score}`, width / 2, height / 8);
   }
 
@@ -210,7 +207,9 @@
       draw();
       update();
       requestAnimationFrame(loop);
-    } else reset();
+    } else {
+      reset()
+    };
   }
 
   function startGame(event) {
@@ -249,13 +248,20 @@
     );
   }
 
+  function drawBackground() {
+    context.fillStyle = dark;
+    context.fillRect(0, 0, width, height);
+    context.globalAlpha = 1
+  }
+
   function drawText(content, posX, posY) {
+    context.fillStyle = light;
     context.textBaseline = "middle";
     context.textAlign = "center";
     context.font = "small-caps 700 2rem sans-serif";
     context.fillText(content, posX, posY);
   }
-
+  drawBackground()
   drawText(
     `${screen.width < 700 ? "Touch" : "Space"}`,
     width / 2,
