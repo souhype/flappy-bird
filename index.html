@@ -184,7 +184,7 @@
   }
 
   function draw() {
-    context.globalAlpha = 0.25
+    // context.globalAlpha = 0.25
     drawBackground()
     for (const particle of particles) {
       particle.draw();
@@ -251,7 +251,7 @@
   function drawBackground() {
     context.fillStyle = dark;
     context.fillRect(0, 0, width, height);
-    context.globalAlpha = 1
+    // context.globalAlpha = 1
   }
 
   function drawText(content, posX, posY) {
